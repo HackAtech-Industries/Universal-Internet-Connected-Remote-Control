@@ -1,0 +1,41 @@
+Universal Internet Connected Remote Control
+This article discusses an IoT project that allows its users to send IR signals from any computer within a network. For that purpose, an ESP8266-enabled development board is connected to an IR sender module, and the finished device hosts a website that allows users to send out codes. The device can be useful, for example, to remote-control several devices from within a network without having to replace the existing electronic equipment with connected items.
+	BOM
+The following parts can be used to build this project:
+
+•	940nm IR LED
+•	ESP8266 based development board
+•	68 Ohm resistor
+•	NPN transistor
+•	330 Ohm resistor
+•	CR2032 battery holder
+•	CR2032 battery
+•	Perfboard (optional)
+•	Breadboard (optional)
+•	M/F Jumper Wires (optional)
+Note that these are recommended parts. It is, however, possible to use different parts if a project requires a more specific IR wavelength to function, or if you’d like to employ a different MCU development board.
+
+	The IR Sender Circuit with an ESP8266
+This project doesn’t require a complicated circuit as the software running on the ESP8266 does most of the work.
+The above diagram shows a simple circuit that allows the ESP8266 to control an infrared LED. Note that it would be possible to connect the LED directly to the development board. That approach, however, isn’t recommended. Instead, one common tactic is to use current-limiting resistors to avoid damaging the components.
+This project uses an added NPN transistor to the circuit because IR LEDs might require more current to function properly. A development board might not be able to supply enough current for the LED to reach its maximum brightness, which limits the effective range of the device. To avoid that, the circuit includes a CR2032 battery that powers the LED, and the transistor acts as a switch that can be turned on or off by the ESP8266.
+
+→Arduino’s IDE Library and the Software for the Project
+Now to the more complicated part of the project: the software. As in the previous parts, the software of this project uses the IRremote library for Arduino. For the ESP8266, however, there’s a version that programmers can install with the Arduino IDE’s library manager:
+
+Breaking Down the Code — What’s Happening Here, Exactly?
+The previous articles made use of the IRremote library for Arduino. Luckily, a ported version for ESP8266-based development boards exists. There are, however, a few minor differences between the versions. The ESP8266 port requires programmers to include different header files. Furthermore, it’s necessary to initialize the sender class. This happens in the setup method of the code for this project (right after the while loop that waits for the serial port to open).
+Right after that, the setup function prints a few logging messages before it tries to establish a connection to a local wireless network. The SSID and password reside in two variables above the setup method. Once a connection is established, the setup method starts an HTTP server.
+The server is defined at the top of the sketch. It listens to incoming requests on port 80. Below that are three arrays that store information about the codes a user entered on the website that the development board hosts.
+The loop method periodically checks for a client waiting to establish a connection to the web server. If there is a client, the ESP8266 retrieves the most recent request and parses it. In this example, we’re only dealing with the first line of simple HTTP requests. The loop method attempts to parse each incoming request. If the request contains ‘/send’, then the device knows that the user requested to send one of the previously stored IR codes. For that, the request must also include the index of the code to send. If the request contains these parts, the program further analyzes the value of the index parameter. It must be between zero and the length of the arrays. The arrays must also contain a valid value at the requested position.
+The ‘containsValidIndex’ function towards the end of the sketch does the parsing of parameters. This function takes a string that represents a number. The method inspects every character of the string, and if it finds a non-numeric character, it returns a negative number. The function then converts the string to an integer and returns it if the integer represents a valid position in any of the arrays.
+Another helper function resides below the ‘containsValidIndex’ method, called ‘findParameterValue’. This function scans the request for a given parameter name. Note that this function assumes the request contains the parameter in question. It then returns the value of the parameter as a string.
+These two helper methods together allow the program to extract parameter values from the user’s requests. Back in the loop method, the next part of the if/else blocks checks whether the user requested the store function. This functionality allows users to input new codes that the ESP8266 can store as long as it’s powered. This block, again, checks whether the request contains the required parameters and then extracts the parameter values with the previously discussed helper functions.
+The last ‘if/else’ block checks whether the user wants to delete a previously stored value. It then parses the request in the same ways as previously described. If the supplied value for the index parameter is valid, this part of the loop method deletes a stored code at the given position by setting the ‘stored’ array to false at that index.
+Once all the parsing is done, the loop method returns an HTML page that contains a table with the stored codes and two forms that allow the users to manage the previously recorded codes. Note that the code above omits that HTML part to save some space.
+
+Note that you can easily add other parameters, such as a name for each IR code like ‘Living room TV OFF’ and include more sophisticated input checks to increase the security and functionality of the program. It’s also possible to support more than two protocols. Consult the official documentation of the IRremote library for further details.
+
+Summary	
+This simple project allows you to administer almost any device that employs an IR remote control from a web browser. This technique can be a cost-effective way to connect your existing devices to a home network and make them more practical. The circuit for this project is not complicated. It consists of an ESP8266-based development board, a transistor, an IR LED, an external power source, and a couple of resistors. The software that runs on the ESP8266 allows users to visit a website as long as they are connected to their home network. On that website, they can enter IR remote controller codes and instruct the ESP8266 to repeat them. Doing so allows them to control multiple of their existing devices without having to change remotes.
+
