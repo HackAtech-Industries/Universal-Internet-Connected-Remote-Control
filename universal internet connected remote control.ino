@@ -1,5 +1,7 @@
-And here’s the code for the entire project (an explanation of the program code is given below(:
-  #include <IRremoteESP8266.h>
+//code of Universal Internet Connected Remote Control
+// idea form maker.io
+//made by RVS Aditya From HackAtech Industries
+#include <IRremoteESP8266.h>
 #include <IRsend.h>
 #include <ESP8266WiFi.h>
 
@@ -241,3 +243,4 @@ String findParameterValue(String request, String param_name)
 	// URL?index=5 HTTP(...)
 	return tmp.substring(param_name_length, tmp.indexOf(" "));
 }
+//project made by R.V.S.Aditya From HackAtech Industries
